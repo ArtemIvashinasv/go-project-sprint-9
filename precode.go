@@ -22,7 +22,7 @@ Loop:
 		select {
 		case ch <- number:
 			fn(number)
-      number++
+			number++
 		case <-ctx.Done():
 			break Loop
 		}
@@ -36,6 +36,7 @@ func Worker(in <-chan int64, out chan<- int64) {
 		out <- v
 		time.Sleep(1 * time.Millisecond)
 	}
+	defer close(out)
 }
 
 func main() {
@@ -87,14 +88,6 @@ func main() {
 		wg.Wait()
 		// закрываем результирующий канал
 		close(chOut)
-	}()
-
-	// Закрываем каналы outs после завершения Generator
-	go func() {
-		<-ctx.Done()
-		for _, ch := range outs {
-			close(ch)
-		}
 	}()
 
 	var count int64 // количество чисел результирующего канала
